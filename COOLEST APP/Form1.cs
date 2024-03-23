@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -16,6 +17,7 @@ namespace COOLEST_APP
     public partial class Form1 : Form
     {
         bool debounce = false;
+        string path = "new";
         public Form1()
         {
             InitializeComponent();
@@ -37,6 +39,7 @@ namespace COOLEST_APP
             var Dialog = new System.Windows.Forms.FolderBrowserDialog();
             System.Windows.Forms.DialogResult result = Dialog.ShowDialog(this);
             label2.Text = Dialog.SelectedPath;
+            path = Dialog.SelectedPath;
 
 
         }
@@ -49,8 +52,8 @@ namespace COOLEST_APP
                 {
                     wc.DownloadProgressChanged += wc_DownloadProgressChanged;
                     wc.DownloadFileAsync(
-                        new System.Uri("https://drive.google.com/uc?export=download&id=1f2dLrbz17xrKVQV9bAlSrGhLtytKgeEa"),
-                        label2.Text+ "\\Build.zip"
+                        new System.Uri("https://download1584.mediafire.com/wqub0469ph3gfLdFV4ExULnVhqKU4EWNVsM5b90IfbggAMe2W_th65TPSgJJQKiTUUSONetZzJWYPPIvDuznATEgYeX1xmcrqa105Y9AMOfB6knBxV703bRlES8rHF6XOVn9Q1RkWXF3s-ADEAHe6a-Tf6cR34FuhhnFil6JOM4/l4mzyae52w6x8ni/Build.zip"),
+                        path+ "\\Build.zip"
                     );
                 }
             }
@@ -65,6 +68,14 @@ namespace COOLEST_APP
                 {
                     debounce = true;
                     Console.WriteLine("done, " + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString());
+
+                    string zipPath = path + "\\Build.zip";
+                    string extractPath = path +"\\Build";
+
+                    System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, extractPath);
+
+
+                    //ZipFile.ExtractToDirectory(path + "\\Build.zip", path + "\\Build");
                 }
             }
         }
