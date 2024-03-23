@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "COOLEST APP", "COOLEST APP\COOLEST APP.csproj", "{6FF35CEF-B963-4D1F-AEC9-C1A0D7AF7752}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6FF35CEF-B963-4D1F-AEC9-C1A0D7AF7752}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF35CEF-B963-4D1F-AEC9-C1A0D7AF7752}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF35CEF-B963-4D1F-AEC9-C1A0D7AF7752}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF35CEF-B963-4D1F-AEC9-C1A0D7AF7752}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7ACF52F6-C5DE-4D50-8394-3CD11F6E99A8}
+	EndGlobalSection
+EndGlobal
