@@ -12,6 +12,7 @@ using System.Reflection.Emit;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Policy;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -33,7 +34,19 @@ namespace COOLEST_APP
             InitializeBackgroundWorker();
         }
 
+        public class Jspn
+        {
+            public string Sum { get; set; }
+        }
 
+        public static class JsonFileReader
+        {
+            public static Jspn Read<Jspn>(string filePath)
+            {
+                string text = File.ReadAllText(filePath);
+                return JsonSerializer.Deserialize<Jspn>(text);
+            }
+        }
         public static class Prompt
         {
             public static string ShowDialog(string text, string caption, bool tl)
@@ -49,9 +62,8 @@ namespace COOLEST_APP
                 System.Windows.Forms.Label textLabel = new System.Windows.Forms.Label() { Left = 100, Top = 20, Width = 400, Text = text };
                 System.Windows.Forms.TextBox textBox = new System.Windows.Forms.TextBox() { Left = 50, Top = 50, Width = 400 };
                 System.Windows.Forms.Button confirmation = new System.Windows.Forms.Button() { Text = "Ok", Left = 350, Width = 100, Top = 70, DialogResult = DialogResult.OK };
+                System.Windows.Forms.Button disadv = new System.Windows.Forms.Button() { Text = "No", Left = 250, Width = 100, Top = 70, DialogResult = DialogResult.OK };
                 confirmation.Click += (sender, e) => { prompt.Close(); };
-                prompt.Controls.Add(confirmation);
-                prompt.Controls.Add(textLabel);
                 if (tl == true)
                 {
                     prompt.Controls.Add(textBox);
@@ -87,8 +99,12 @@ namespace COOLEST_APP
                     pictureBox.Image = (Image) MyImage;
                     pictureBox.Left = 30;
                     pictureBox.Top = 5;
+                    confirmation.Text = "Yes";
                     prompt.Controls.Add(pictureBox);
+                    prompt.Controls.Add(disadv);
                 }
+                prompt.Controls.Add(confirmation);
+                prompt.Controls.Add(textLabel);
                 prompt.AcceptButton = confirmation;
 
                 return prompt.ShowDialog() == DialogResult.OK ? textBox.Text : "";
@@ -149,47 +165,76 @@ namespace COOLEST_APP
             }
             else
             {
-                if (Directory.Exists(path + @"\EMI\path.json" ))
+                if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
                 {
+                    File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
+                    var jppn = new Jspn
+                    {
+                        Sum = path
+                    };
 
+                    string json = JsonSerializer.Serialize(jppn);
+                    File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
                 }
                 else
                 {
-                    Console.WriteLine(path);
-                    Console.WriteLine(path + @"\EMI\path.json");
-                    Console.WriteLine(System.IO.Path.GetTempPath() + @"\EMI\path.json");
+                    Console.WriteLine(System.IO.Path.GetTempPath() + @"EMI\path.json");
+                    if(!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\"))){
+                        Directory.CreateDirectory(System.IO.Path.GetTempPath() + @"EMI\");
+                    }
+                    if(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
+                    {
+                        File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
+                    }
+                    var jppn = new Jspn
+                    {
+                        Sum = path
+                    };
+
+                    string json = JsonSerializer.Serialize(jppn);
+                    File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
                 }
             }
         }
 
         private void dwnbtn_Click(object sender, EventArgs e)
         {
-            
-            if (path != "Please Select a Path.")
+            if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
             {
-                if (Directory.Exists(path))
+                Jspn item = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\path.json");
+                //string promptValue = Prompt.ShowDialog("Default Previous Path Found. Should The Program use it for the Function?", "Information??", false);
+                //path = item.Sum;
+            }
+            string asd = Prompt.ShowDialog("Default Previous Path Found. Should The Program use it for the Function?", "Information??", false);
+            Console.WriteLine(asd);
+            if (dwnbtn.Text == "Install")
+            {
+                if (path != "Please Select a Path.")
                 {
-                    Console.WriteLine("Started, " + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString());
-                    progressBar1.Visible = true;
-                    button3.Visible = true;
-                    label1.Visible = true;
-                    label3.Visible = true;
-                    label4.Visible = true;
-                    stopwatch.Restart();
-                    using (WebClient wc = new WebClient())
+                    if (Directory.Exists(path))
                     {
-                        wc.DownloadProgressChanged += wc_DownloadProgressChanged;
-                        wc.DownloadFileAsync(
-                            new System.Uri("https://download1584.mediafire.com/ij1u51pnsm8gsSbyvQDj_QUKeEnIbGjEVDXdvkdMJh8We85-tgdMe7jzWrK2R8t406m27nBfpUrRfnkmZBdyhFlIBpw8kOq0OP1R05Wy8vsebWYyQt33TvUHuQAlxzh-sl-mPGw8foF1cuQo7EqYnXW3HUF-A68z4NAN9Q14VDQ/l4mzyae52w6x8ni/Build.zip"),
-                            path + "\\Build.zip"
-                        );
+                        Console.WriteLine("Started, " + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString());
+                        progressBar1.Visible = true;
+                        button3.Visible = true;
+                        label1.Visible = true;
+                        label3.Visible = true;
+                        label4.Visible = true;
+                        stopwatch.Restart();
+                        using (WebClient wc = new WebClient())
+                        {
+                            wc.DownloadProgressChanged += wc_DownloadProgressChanged;
+                            wc.DownloadFileAsync(
+                                new System.Uri("https://download1584.mediafire.com/ij1u51pnsm8gsSbyvQDj_QUKeEnIbGjEVDXdvkdMJh8We85-tgdMe7jzWrK2R8t406m27nBfpUrRfnkmZBdyhFlIBpw8kOq0OP1R05Wy8vsebWYyQt33TvUHuQAlxzh-sl-mPGw8foF1cuQo7EqYnXW3HUF-A68z4NAN9Q14VDQ/l4mzyae52w6x8ni/Build.zip"),
+                                path + "\\Build.zip"
+                            );
+                        }
                     }
                 }
-            }
-            else
-            {
-                string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
-                //throw new CustomException("Please Select a Path to Install Game via the '☰' button");
+                else
+                {
+                    string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
+                    //throw new CustomException("Please Select a Path to Install Game via the '☰' button");
+                }
             }
         }
 
