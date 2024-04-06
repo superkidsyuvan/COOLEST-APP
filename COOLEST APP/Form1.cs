@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Text;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -25,18 +26,29 @@ namespace COOLEST_APP
     public partial class Form1 : Form
     {
         bool debounce = false;
-        string path = "Please Select a Path.";
+        public string path = "Please Select a Path.";
+        public string gameup = "1";
+        public string gamelin = "https://download1584.mediafire.com/ij1u51pnsm8gsSbyvQDj_QUKeEnIbGjEVDXdvkdMJh8We85-tgdMe7jzWrK2R8t406m27nBfpUrRfnkmZBdyhFlIBpw8kOq0OP1R05Wy8vsebWYyQt33TvUHuQAlxzh-sl-mPGw8foF1cuQo7EqYnXW3HUF-A68z4NAN9Q14VDQ/l4mzyae52w6x8ni/Build.zip";
+        public string EIMup = "1";
+        public string EIMlin = "https://";
+        public string install = "false";
         private readonly Stopwatch stopwatch = new Stopwatch();
         private BackgroundWorker unzipWorker;
         public Form1()
         {
             InitializeComponent();
             InitializeBackgroundWorker();
+            Text = "Electronic Mayhem Launcher";
         }
 
         public class Jspn
         {
-            public string Sum { get; set; }
+            public string Path { get; set; }
+            public string GameUp { get; set; }
+            public string GameLin { get; set; }
+            public string EIMUp { get; set; }
+            public string EIMLin { get; set; }
+            public string Install { get; set; }
         }
 
         public static class JsonFileReader
@@ -62,7 +74,7 @@ namespace COOLEST_APP
                 System.Windows.Forms.Label textLabel = new System.Windows.Forms.Label() { Left = 100, Top = 20, Width = 400, Text = text };
                 System.Windows.Forms.TextBox textBox = new System.Windows.Forms.TextBox() { Left = 50, Top = 50, Width = 400 };
                 System.Windows.Forms.Button confirmation = new System.Windows.Forms.Button() { Text = "Ok", Left = 350, Width = 100, Top = 70, DialogResult = DialogResult.OK };
-                System.Windows.Forms.Button disadv = new System.Windows.Forms.Button() { Text = "No", Left = 250, Width = 100, Top = 70, DialogResult = DialogResult.OK };
+                System.Windows.Forms.Button disadv = new System.Windows.Forms.Button() { Text = "No", Left = 250, Width = 100, Top = 70, DialogResult = DialogResult.Yes };
                 confirmation.Click += (sender, e) => { prompt.Close(); };
                 if (tl == true)
                 {
@@ -74,7 +86,7 @@ namespace COOLEST_APP
                     pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                     Bitmap MyImage = new Bitmap("C:\\Windows\\System32\\SecurityAndMaintenance_Error.png");
                     pictureBox.ClientSize = new Size(50, 50);
-                    pictureBox.Image = (Image) MyImage ;
+                    pictureBox.Image = (Image)MyImage;
                     pictureBox.Left = 30;
                     pictureBox.Top = 5;
                     prompt.Controls.Add(pictureBox);
@@ -85,7 +97,7 @@ namespace COOLEST_APP
                     pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                     Bitmap MyImage = new Bitmap("C:\\Windows\\System32\\SecurityAndMaintenance_Alert.png");
                     pictureBox.ClientSize = new Size(50, 50);
-                    pictureBox.Image = (Image) MyImage;
+                    pictureBox.Image = (Image)MyImage;
                     pictureBox.Left = 30;
                     pictureBox.Top = 5;
                     prompt.Controls.Add(pictureBox);
@@ -96,19 +108,64 @@ namespace COOLEST_APP
                     pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
                     Bitmap MyImage = new Bitmap("C:\\Windows\\System32\\SecurityAndMaintenance.png");
                     pictureBox.ClientSize = new Size(50, 50);
-                    pictureBox.Image = (Image) MyImage;
+                    pictureBox.Image = (Image)MyImage;
                     pictureBox.Left = 30;
                     pictureBox.Top = 5;
                     confirmation.Text = "Yes";
+                    disadv.DialogResult = DialogResult.No;
                     prompt.Controls.Add(pictureBox);
                     prompt.Controls.Add(disadv);
                 }
+
                 prompt.Controls.Add(confirmation);
                 prompt.Controls.Add(textLabel);
-                prompt.AcceptButton = confirmation;
+                //prompt.ShowDialog();
 
-                return prompt.ShowDialog() == DialogResult.OK ? textBox.Text : "";
+                //prompt.AcceptButton = confirmation;
+
+                if (prompt.DialogResult == DialogResult.Yes)
+                {
+                    // result = "y";
+                }
+
+                return prompt.ShowDialog() == DialogResult.Yes ? textBox.Text : "";
             }
+        }
+
+        private void disadv_Click(object sender, EventArgs e)
+        {
+            textBox.Text = "new";
+        }
+
+        private void Form1_Shown(Object sender, EventArgs e)
+        {
+            if (File.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
+            {
+                progressBar1.Width = 743;
+                progressBar1.Value = 0;
+                progressBar1.Visible = true;
+                Jspn item = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\path.json");
+                if (Directory.Exists(item.Path))
+                {
+                    path = item.Path;
+                    label2.Text = item.Path;
+                    dwnbtn.Text = "Launch";
+                }
+                progressBar1.Value = 1;
+                using (WebClient wc = new WebClient())
+                {
+                    wc.DownloadProgressChanged += dwnup_DownloadProgressChanged;
+                    wc.DownloadFileAsync(
+                        new System.Uri(gamelin),
+                        System.IO.Path.GetTempPath() + @"EMI\dwn_path.json"
+                    );
+                }
+                dwnbtn.Visible = true;
+                menubtn.Visible = true;
+                progressBar1.Visible = false;
+                progressBar1.Width = 521;
+            }
+            Console.WriteLine("asds" + (System.IO.Path.GetTempPath() + @"EMI\path.json"));
         }
 
         private void InitializeBackgroundWorker()
@@ -119,6 +176,7 @@ namespace COOLEST_APP
             unzipWorker.ProgressChanged += UnzipWorker_ProgressChanged;
             unzipWorker.RunWorkerCompleted += UnzipWorker_RunWorkerCompleted;
         }
+
 
         private void UnzipWorker_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -132,7 +190,7 @@ namespace COOLEST_APP
         {
             // Update the ProgressBar value based on progress
             progressBar1.Value = e.ProgressPercentage;
-            label1.Text = "Unzipping Game Resources "+ e.ProgressPercentage + "%";
+            label1.Text = "Unzipping Game Resources " + e.ProgressPercentage + "%";
         }
 
         private void UnzipWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -170,25 +228,35 @@ namespace COOLEST_APP
                     File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
                     var jppn = new Jspn
                     {
-                        Sum = path
+                        Path = path,
+                        GameUp = gameup,
+                        GameLin = gamelin,
+                        EIMUp = EIMup,
+                        EIMLin = EIMlin,
+                        Install = install
                     };
-
+                    Console.WriteLine("'" + gameup + "'");
                     string json = JsonSerializer.Serialize(jppn);
                     File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
                 }
                 else
                 {
                     Console.WriteLine(System.IO.Path.GetTempPath() + @"EMI\path.json");
-                    if(!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\"))){
+                    if (!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\"))) {
                         Directory.CreateDirectory(System.IO.Path.GetTempPath() + @"EMI\");
                     }
-                    if(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
+                    if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
                     {
                         File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
                     }
                     var jppn = new Jspn
                     {
-                        Sum = path
+                        Path = path,
+                        GameUp = gameup,
+                        GameLin = gamelin,
+                        EIMUp = EIMup,
+                        EIMLin = EIMlin,
+                        Install = install
                     };
 
                     string json = JsonSerializer.Serialize(jppn);
@@ -199,14 +267,8 @@ namespace COOLEST_APP
 
         private void dwnbtn_Click(object sender, EventArgs e)
         {
-            if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
-            {
-                Jspn item = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\path.json");
-                //string promptValue = Prompt.ShowDialog("Default Previous Path Found. Should The Program use it for the Function?", "Information??", false);
-                //path = item.Sum;
-            }
-            string asd = Prompt.ShowDialog("Default Previous Path Found. Should The Program use it for the Function?", "Information??", false);
-            Console.WriteLine(asd);
+
+            //string asd = Prompt.ShowDialog("Default Previous Path Found. Should The Program use it for the Function?", "Information??", false);
             if (dwnbtn.Text == "Install")
             {
                 if (path != "Please Select a Path.")
@@ -224,7 +286,7 @@ namespace COOLEST_APP
                         {
                             wc.DownloadProgressChanged += wc_DownloadProgressChanged;
                             wc.DownloadFileAsync(
-                                new System.Uri("https://download1584.mediafire.com/ij1u51pnsm8gsSbyvQDj_QUKeEnIbGjEVDXdvkdMJh8We85-tgdMe7jzWrK2R8t406m27nBfpUrRfnkmZBdyhFlIBpw8kOq0OP1R05Wy8vsebWYyQt33TvUHuQAlxzh-sl-mPGw8foF1cuQo7EqYnXW3HUF-A68z4NAN9Q14VDQ/l4mzyae52w6x8ni/Build.zip"),
+                                new System.Uri(gamelin),
                                 path + "\\Build.zip"
                             );
                         }
@@ -235,6 +297,10 @@ namespace COOLEST_APP
                     string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
                     //throw new CustomException("Please Select a Path to Install Game via the '☰' button");
                 }
+            }
+            if (dwnbtn.Text == "Launch")
+            {
+                System.Diagnostics.Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
             }
         }
 
@@ -255,12 +321,12 @@ namespace COOLEST_APP
 
         private void button2_MouseEnter(object sender, EventArgs e)
         {
-            
+
         }
-        
+
         private void panel_Exit(object sender, EventArgs e)
         {
-           
+
         }
 
         private void startUnzip()
@@ -280,7 +346,7 @@ namespace COOLEST_APP
         {
             progressBar1.Value = e.ProgressPercentage;
             label1.Text = "Downloading Game Resources " + e.ProgressPercentage.ToString() + "% (" + e.BytesReceived.ToString() + "Bytes /" + e.TotalBytesToReceive.ToString() + "Bytes )";
-            
+
             long totalEstimatedMilliseconds = stopwatch.ElapsedMilliseconds * e.TotalBytesToReceive / e.TotalBytesToReceive;
             TimeSpan remainingTime = TimeSpan.FromMilliseconds(totalEstimatedMilliseconds);
 
@@ -305,7 +371,13 @@ namespace COOLEST_APP
             }
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        void dwnup_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        {
+            progressBar1.Value = System.Convert.ToInt32(e.ProgressPercentage/2) + 1;
+            label1.Text = "Checking If Game Resources Are Updated To Current Standards" + (System.Convert.ToInt32(e.ProgressPercentage / 2) + 1).ToString() + "% (" + e.BytesReceived.ToString() + "Bytes /" + e.TotalBytesToReceive.ToString() + "Bytes )";
+        }
+
+            private void label2_Click(object sender, EventArgs e)
         {
 
         }
@@ -324,5 +396,6 @@ namespace COOLEST_APP
         {
 
         }
+
     }
 }

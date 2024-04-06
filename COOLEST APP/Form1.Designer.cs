@@ -37,11 +37,11 @@
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.menubtn = new System.Windows.Forms.Button();
             this.panel = new System.Windows.Forms.Panel();
+            this.clrdel = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
             this.panel.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -101,6 +101,7 @@
             this.dwnbtn.TabIndex = 4;
             this.dwnbtn.Text = "Install";
             this.dwnbtn.UseVisualStyleBackColor = false;
+            this.dwnbtn.Visible = false;
             this.dwnbtn.Click += new System.EventHandler(this.dwnbtn_Click);
             // 
             // progressBar1
@@ -121,12 +122,13 @@
             this.menubtn.TabIndex = 6;
             this.menubtn.Text = "☰";
             this.menubtn.UseVisualStyleBackColor = false;
+            this.menubtn.Visible = false;
             this.menubtn.Click += new System.EventHandler(this.menubtn_Click);
             // 
             // panel
             // 
             this.panel.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.panel.Controls.Add(this.button4);
+            this.panel.Controls.Add(this.clrdel);
             this.panel.Controls.Add(this.button2);
             this.panel.Controls.Add(this.label2);
             this.panel.Location = new System.Drawing.Point(580, 281);
@@ -135,6 +137,17 @@
             this.panel.TabIndex = 7;
             this.panel.Visible = false;
             this.panel.MouseLeave += new System.EventHandler(this.panel_Exit);
+            // 
+            // clrdel
+            // 
+            this.clrdel.Location = new System.Drawing.Point(3, 45);
+            this.clrdel.Name = "clrdel";
+            this.clrdel.Size = new System.Drawing.Size(175, 23);
+            this.clrdel.TabIndex = 4;
+            this.clrdel.Text = "Clear Downloaded Resources";
+            this.clrdel.UseVisualStyleBackColor = true;
+            this.clrdel.Visible = false;
+            this.clrdel.Click += new System.EventHandler(this.button4_Click);
             // 
             // label1
             // 
@@ -178,17 +191,6 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Visible = false;
             // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(3, 45);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(175, 23);
-            this.button4.TabIndex = 4;
-            this.button4.Text = "Clear Downloaded Resources";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Visible = false;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -206,6 +208,7 @@
             this.Controls.Add(this.button1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Shown += new System.EventHandler(this.Form1_Shown);
             this.panel.ResumeLayout(false);
             this.panel.PerformLayout();
             this.ResumeLayout(false);
@@ -227,7 +230,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button clrdel;
     }
 }
 
