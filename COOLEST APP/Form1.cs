@@ -26,6 +26,7 @@ namespace COOLEST_APP
     public partial class Form1 : Form
     {
         bool debounce = false;
+        bool debounce2 = false;
         public string path = "Please Select a Path.";
         public string gameup = "1";
         public string gamelin = "https://download1584.mediafire.com/ij1u51pnsm8gsSbyvQDj_QUKeEnIbGjEVDXdvkdMJh8We85-tgdMe7jzWrK2R8t406m27nBfpUrRfnkmZBdyhFlIBpw8kOq0OP1R05Wy8vsebWYyQt33TvUHuQAlxzh-sl-mPGw8foF1cuQo7EqYnXW3HUF-A68z4NAN9Q14VDQ/l4mzyae52w6x8ni/Build.zip";
@@ -34,6 +35,9 @@ namespace COOLEST_APP
         public string install = "false";
         private readonly Stopwatch stopwatch = new Stopwatch();
         private BackgroundWorker unzipWorker;
+        private long timestamp = 1;
+        private long bytesPreDwn = 1;
+
         public Form1()
         {
             InitializeComponent();
@@ -136,7 +140,6 @@ namespace COOLEST_APP
         {
             textBox.Text = "new";
         }
-
         private void Form1_Shown(Object sender, EventArgs e)
         {
             if (File.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
@@ -144,26 +147,38 @@ namespace COOLEST_APP
                 progressBar1.Width = 743;
                 progressBar1.Value = 0;
                 progressBar1.Visible = true;
+                label1.Visible = true;
+                label1.Text = "Checking Game..";
                 Jspn item = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\path.json");
                 if (Directory.Exists(item.Path))
                 {
                     path = item.Path;
                     label2.Text = item.Path;
-                    dwnbtn.Text = "Launch";
+                    if (item.Install == "true")
+                    {
+                        dwnbtn.Text = "Launch";
+                    }
+                    gameup = item.GameUp;
+                    gamelin = item.GameLin;
+                    EIMup = item.EIMUp;
+                    EIMlin = item.EIMLin;
+                    install = item.Install;
                 }
                 progressBar1.Value = 1;
                 using (WebClient wc = new WebClient())
                 {
                     wc.DownloadProgressChanged += dwnup_DownloadProgressChanged;
                     wc.DownloadFileAsync(
-                        new System.Uri(gamelin),
+                        new System.Uri("https://drive.google.com/uc?export=download&id=107NH2glzffbkAvdZq_QjUMSiCcY6SP9o"),
                         System.IO.Path.GetTempPath() + @"EMI\dwn_path.json"
                     );
                 }
+
+            }
+            else
+            {
                 dwnbtn.Visible = true;
                 menubtn.Visible = true;
-                progressBar1.Visible = false;
-                progressBar1.Width = 521;
             }
             Console.WriteLine("asds" + (System.IO.Path.GetTempPath() + @"EMI\path.json"));
         }
@@ -195,6 +210,27 @@ namespace COOLEST_APP
 
         private void UnzipWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            install = "true";
+            if (!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\")))
+            {
+                Directory.CreateDirectory(System.IO.Path.GetTempPath() + @"EMI\");
+            }
+            if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
+            {
+                File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
+            }
+            var jppn = new Jspn
+            {
+                Path = path,
+                GameUp = gameup,
+                GameLin = gamelin,
+                EIMUp = EIMup,
+                EIMLin = EIMlin,
+                Install = install
+            };
+
+            string json = JsonSerializer.Serialize(jppn);
+            File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
             // Unzipping completed
             //MessageBox.Show("Unzipping completed!");
         }
@@ -347,7 +383,22 @@ namespace COOLEST_APP
             progressBar1.Value = e.ProgressPercentage;
             label1.Text = "Downloading Game Resources " + e.ProgressPercentage.ToString() + "% (" + e.BytesReceived.ToString() + "Bytes /" + e.TotalBytesToReceive.ToString() + "Bytes )";
 
-            long totalEstimatedMilliseconds = stopwatch.ElapsedMilliseconds * e.TotalBytesToReceive / e.TotalBytesToReceive;
+
+
+            //long totalEstimatedMilliseconds = stopwatch.ElapsedMilliseconds * e.TotalBytesToReceive / e.TotalBytesToReceive;
+            long totalEstimatedMilliseconds;
+            if (stopwatch.ElapsedMilliseconds == 0 || e.BytesReceived == 0 || timestamp == 0 || bytesPreDwn == 0)
+            {
+                totalEstimatedMilliseconds = 99999999999999999;
+            }
+            else
+            {
+                /*Console.WriteLine(e.BytesReceived);
+                Console.WriteLine(stopwatch.ElapsedMilliseconds);
+                Console.WriteLine(timestamp);
+                Console.WriteLine(bytesPreDwn);*/
+                totalEstimatedMilliseconds = (e.TotalBytesToReceive - e.BytesReceived) / ((e.BytesReceived - bytesPreDwn) / (stopwatch.ElapsedMilliseconds - timestamp));
+            }
             TimeSpan remainingTime = TimeSpan.FromMilliseconds(totalEstimatedMilliseconds);
 
             // Convert remaining time to hours, minutes, and seconds
@@ -369,12 +420,41 @@ namespace COOLEST_APP
                     //ZipFile.ExtractToDirectory(path + "\\Build.zip", path + "\\Build");
                 }
             }
+
+            bytesPreDwn = e.BytesReceived;
+            timestamp = stopwatch.ElapsedMilliseconds;
         }
 
         void dwnup_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             progressBar1.Value = System.Convert.ToInt32(e.ProgressPercentage/2) + 1;
-            label1.Text = "Checking If Game Resources Are Updated To Current Standards" + (System.Convert.ToInt32(e.ProgressPercentage / 2) + 1).ToString() + "% (" + e.BytesReceived.ToString() + "Bytes /" + e.TotalBytesToReceive.ToString() + "Bytes )";
+            label1.Text = "Checking If Game Resources Are Updated To Current Standards " + (System.Convert.ToInt32(e.ProgressPercentage / 2) + 1).ToString() + "% (" + e.BytesReceived.ToString() + "Bytes /" + e.TotalBytesToReceive.ToString() + "Bytes )";
+            if (e.ProgressPercentage == 100)
+            {
+                if (debounce2 == false)
+                {
+                    Jspn item2 = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\dwn_path.json");
+                    if (gameup != item2.GameUp && item2.Install == "true")
+                    {
+                        dwnbtn.Text = "Update Game";
+
+                    }
+                    if (gameup != item2.GameUp || gamelin != item2.GameLin || EIMup != item2.EIMUp || EIMlin != item2.EIMLin || install != item2.Install)
+                    {
+                        gameup = item2.GameUp;
+                        gamelin = item2.GameLin;
+                        EIMup = item2.EIMUp ;
+                        EIMlin = item2.EIMLin;
+                        install = item2.Install;
+                    }
+                    progressBar1.Visible = false;
+                    progressBar1.Width = 521;
+                    progressBar1.Value = 0;
+                    label1.Visible = false;
+                    dwnbtn.Visible = true;
+                    menubtn.Visible = true;
+                }
+            }
         }
 
             private void label2_Click(object sender, EventArgs e)
