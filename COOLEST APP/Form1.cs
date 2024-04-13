@@ -165,6 +165,10 @@ namespace COOLEST_APP
                     install = item.Install;
                 }
                 progressBar1.Value = 1;
+                if(File.Exists(System.IO.Path.GetTempPath() + @"EMI\dwn_path.json"))
+                {
+                    File.Delete(System.IO.Path.GetTempPath() + @"EMI\dwn_path.json");
+                }
                 using (WebClient wc = new WebClient())
                 {
                     wc.DownloadProgressChanged += dwnup_DownloadProgressChanged;
@@ -327,7 +331,10 @@ namespace COOLEST_APP
                             );
                         }
                     }
-                }
+                    if (Directory.Exists(path) is false)
+                    {
+                        string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button (Unable to Find Current Path)", "Error!!!!", false);
+                    }
                 else
                 {
                     string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
@@ -337,6 +344,10 @@ namespace COOLEST_APP
             if (dwnbtn.Text == "Launch")
             {
                 System.Diagnostics.Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+            }
+            if(dwnbtn.Text == "Update Game")
+            {
+
             }
         }
 
@@ -382,22 +393,21 @@ namespace COOLEST_APP
         {
             progressBar1.Value = e.ProgressPercentage;
             label1.Text = "Downloading Game Resources " + e.ProgressPercentage.ToString() + "% (" + e.BytesReceived.ToString() + "Bytes /" + e.TotalBytesToReceive.ToString() + "Bytes )";
-
-
+            label3.Text = "Download Speed "+ ((e.BytesReceived - bytesPreDwn) / (stopwatch.ElapsedMilliseconds - (timestamp - 1))) + " Bytes /ms";
 
             //long totalEstimatedMilliseconds = stopwatch.ElapsedMilliseconds * e.TotalBytesToReceive / e.TotalBytesToReceive;
             long totalEstimatedMilliseconds;
-            if (stopwatch.ElapsedMilliseconds == 0 || e.BytesReceived == 0 || timestamp == 0 || bytesPreDwn == 0)
-            {
-                totalEstimatedMilliseconds = 99999999999999999;
-            }
-            else
+            try
             {
                 /*Console.WriteLine(e.BytesReceived);
                 Console.WriteLine(stopwatch.ElapsedMilliseconds);
                 Console.WriteLine(timestamp);
                 Console.WriteLine(bytesPreDwn);*/
-                totalEstimatedMilliseconds = (e.TotalBytesToReceive - e.BytesReceived) / ((e.BytesReceived - bytesPreDwn) / (stopwatch.ElapsedMilliseconds - timestamp));
+                totalEstimatedMilliseconds = (e.TotalBytesToReceive - e.BytesReceived) / ((e.BytesReceived - bytesPreDwn) / (stopwatch.ElapsedMilliseconds - (timestamp - 1)));
+            }
+            catch (Exception ex) {
+                totalEstimatedMilliseconds = 99999999999999;
+                Console.WriteLine(ex.ToString());
             }
             TimeSpan remainingTime = TimeSpan.FromMilliseconds(totalEstimatedMilliseconds);
 
@@ -434,7 +444,7 @@ namespace COOLEST_APP
                 if (debounce2 == false)
                 {
                     Jspn item2 = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\dwn_path.json");
-                    if (gameup != item2.GameUp && item2.Install == "true")
+                    if (gameup != item2.GameUp && install == "true")
                     {
                         dwnbtn.Text = "Update Game";
 
@@ -457,7 +467,7 @@ namespace COOLEST_APP
             }
         }
 
-            private void label2_Click(object sender, EventArgs e)
+        private void label2_Click(object sender, EventArgs e)
         {
 
         }
