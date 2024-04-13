@@ -314,7 +314,11 @@ namespace COOLEST_APP
                 if (path != "Please Select a Path.")
                 {
                     if (Directory.Exists(path))
-                    {
+                    {   
+                        if(File.Exists(path + @"\Build.zip"))
+                        {
+                            File.Delete(path + @"\Build.zip");
+                        }
                         Console.WriteLine("Started, " + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString());
                         progressBar1.Visible = true;
                         button3.Visible = true;
@@ -335,6 +339,7 @@ namespace COOLEST_APP
                     {
                         string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button (Unable to Find Current Path)", "Error!!!!", false);
                     }
+                }
                 else
                 {
                     string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
@@ -449,13 +454,12 @@ namespace COOLEST_APP
                         dwnbtn.Text = "Update Game";
 
                     }
-                    if (gameup != item2.GameUp || gamelin != item2.GameLin || EIMup != item2.EIMUp || EIMlin != item2.EIMLin || install != item2.Install)
+                    if (gameup != item2.GameUp || gamelin != item2.GameLin || EIMup != item2.EIMUp || EIMlin != item2.EIMLin)
                     {
                         gameup = item2.GameUp;
                         gamelin = item2.GameLin;
                         EIMup = item2.EIMUp ;
                         EIMlin = item2.EIMLin;
-                        install = item2.Install;
                     }
                     progressBar1.Visible = false;
                     progressBar1.Width = 521;
