@@ -1,4 +1,25 @@
-﻿namespace COOLEST_APP
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Text;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Reflection.Emit;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Policy;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
+namespace COOLEST_APP
 {
     partial class Form1
     {
@@ -147,7 +168,7 @@
             this.clrdel.Text = "Clear Downloaded Resources";
             this.clrdel.UseVisualStyleBackColor = true;
             this.clrdel.Visible = false;
-            this.clrdel.Click += new System.EventHandler(this.button4_Click);
+            this.clrdel.Click += new System.EventHandler(this.clrdel_Click);
             // 
             // label1
             // 

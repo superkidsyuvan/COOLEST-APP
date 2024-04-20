@@ -37,6 +37,7 @@ namespace COOLEST_APP
         private BackgroundWorker unzipWorker;
         private long timestamp = 1;
         private long bytesPreDwn = 1;
+        BackgroundWorker worker = new BackgroundWorker();
 
         public Form1()
         {
@@ -53,6 +54,35 @@ namespace COOLEST_APP
             public string EIMUp { get; set; }
             public string EIMLin { get; set; }
             public string Install { get; set; }
+        }
+
+        public class AbortableBackgroundWorker : BackgroundWorker
+        {
+
+            private Thread workerThread;
+
+            protected override void OnDoWork(DoWorkEventArgs e)
+            {
+                workerThread = Thread.CurrentThread;
+                try
+                {
+                    base.OnDoWork(e);
+                }
+                catch (ThreadAbortException)
+                {
+                    e.Cancel = true; //We must set Cancel property to true!
+                    Thread.ResetAbort(); //Prevents ThreadAbortException propagation
+                }
+            }
+
+            public void Abort()
+            {
+                if (workerThread != null)
+                {
+                    workerThread.Abort();
+                    workerThread = null;
+                }
+            }
         }
 
         public static class JsonFileReader
@@ -157,6 +187,7 @@ namespace COOLEST_APP
                     if (item.Install == "true")
                     {
                         dwnbtn.Text = "Launch";
+                        clrdel.Visible = true;
                     }
                     gameup = item.GameUp;
                     gamelin = item.GameLin;
@@ -189,7 +220,7 @@ namespace COOLEST_APP
 
         private void InitializeBackgroundWorker()
         {
-            unzipWorker = new BackgroundWorker();
+            unzipWorker = new AbortableBackgroundWorker();
             unzipWorker.WorkerReportsProgress = true;
             unzipWorker.DoWork += UnzipWorker_DoWork;
             unzipWorker.ProgressChanged += UnzipWorker_ProgressChanged;
@@ -202,7 +233,26 @@ namespace COOLEST_APP
             string zipFilePath = path + "\\Build.zip";
             string extractPath = path + "\\Build";
 
-            System.IO.Compression.ZipFile.ExtractToDirectory(zipFilePath, extractPath);
+            try
+            {
+                System.IO.Compression.ZipFile.ExtractToDirectory(zipFilePath, extractPath);
+            }catch(Exception ex)
+            {
+                DialogResult boxOfMessage = MessageBox.Show("Error Occured: " + ex.ToString(), "Oh Noes!", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error);
+
+                if(boxOfMessage == DialogResult.Retry)
+                {
+                    if (unzipWorker.IsBusy == true)
+                    {
+                        unzipWorker.Chat
+                    }
+                    startUnzip();
+                }else if (boxOfMessage == DialogResult.Ignore)
+                {
+                    unzipWorker.CancelAsync();
+                    startUnzip();
+                }
+            }
         }
 
         private void UnzipWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -234,7 +284,9 @@ namespace COOLEST_APP
             };
 
             string json = JsonSerializer.Serialize(jppn);
-            File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
+            System.IO.File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
+            dwnbtn.Text = "Launch";
+            clrdel.Visible = true;
             // Unzipping completed
             //MessageBox.Show("Unzipping completed!");
         }
@@ -309,50 +361,57 @@ namespace COOLEST_APP
         {
 
             //string asd = Prompt.ShowDialog("Default Previous Path Found. Should The Program use it for the Function?", "Information??", false);
-            if (dwnbtn.Text == "Install")
+            if (dwnbtn.Text == "Install" || dwnbtn.Text == "Update Game")
             {
-                if (path != "Please Select a Path.")
+                try
                 {
-                    if (Directory.Exists(path))
-                    {   
-                        if(File.Exists(path + @"\Build.zip"))
+                    if (path != "Please Select a Path.")
+                    {
+                        if (Directory.Exists(path))
                         {
-                            File.Delete(path + @"\Build.zip");
+                            Console.WriteLine("Started, " + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString());
+                            progressBar1.Visible = true;
+                            button3.Visible = true;
+                            label1.Visible = true;
+                            label3.Visible = true;
+                            label4.Visible = true;
+                            if (File.Exists(path + @"\Build.zip"))
+                            {
+                                File.Delete(path + @"\Build.zip");
+                            }
+                            if (Directory.Exists(path + @"\Build\"))
+                            {
+                                Directory.Delete(path + @"\Build\");
+                            }
+                            stopwatch.Restart();
+                            using (WebClient wc = new WebClient())
+                            {
+                                wc.DownloadProgressChanged += wc_DownloadProgressChanged;
+                                wc.DownloadFileAsync(
+                                    new System.Uri(gamelin),
+                                    path + "\\Build.zip"
+                                );
+                            }
                         }
-                        Console.WriteLine("Started, " + DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString());
-                        progressBar1.Visible = true;
-                        button3.Visible = true;
-                        label1.Visible = true;
-                        label3.Visible = true;
-                        label4.Visible = true;
-                        stopwatch.Restart();
-                        using (WebClient wc = new WebClient())
+                        if (Directory.Exists(path) is false)
                         {
-                            wc.DownloadProgressChanged += wc_DownloadProgressChanged;
-                            wc.DownloadFileAsync(
-                                new System.Uri(gamelin),
-                                path + "\\Build.zip"
-                            );
+                            string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button (Unable to Find Current Path)", "Error!!!!", false);
                         }
                     }
-                    if (Directory.Exists(path) is false)
+                    else
                     {
-                        string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button (Unable to Find Current Path)", "Error!!!!", false);
+                        string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
+                        //throw new CustomException("Please Select a Path to Install Game via the '☰' button");
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    string promptValue = Prompt.ShowDialog("Please Select a Path to Install Game via the '☰' button", "Error!!!!", false);
-                    //throw new CustomException("Please Select a Path to Install Game via the '☰' button");
+                    string promptValue = Prompt.ShowDialog("Unexpected Error Encountered: " + (ex.ToString()), "Error!!!!", false);
                 }
             }
             if (dwnbtn.Text == "Launch")
             {
                 System.Diagnostics.Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
-            }
-            if(dwnbtn.Text == "Update Game")
-            {
-
             }
         }
 
@@ -386,8 +445,14 @@ namespace COOLEST_APP
 
             progressBar1.Value = 0;
             label1.Text = "Initializing Unzip Process...";
-            label3.Visible = false;
-            label4.Visible = false;
+            if (label3.Visible)
+            {
+                label3.Visible = false;
+            }
+            if (label4.Visible)
+            {
+                label4.Visible = false;
+            }
 
             System.Threading.Thread.Sleep(1000);
 
@@ -486,10 +551,90 @@ namespace COOLEST_APP
 
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void clrdel_Click(object sender, EventArgs e)
         {
+            DialogResult dialogResult = MessageBox.Show("Are you sure you want to delete game files? THIS IS AN IRREVERSIBLE DECISION.", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
+            // Get the file path to delete
+            string filePath = path + @"\Build.zip"; // Implement logic to get file path
+
+            try
+            {
+                if (dialogResult == DialogResult.Yes)
+                {
+                    // Check if file exists
+                    if (File.Exists(filePath))
+                    {
+
+                        // Start deletion in a background thread
+                        worker.DoWork += new DoWorkEventHandler(DeleteFileBackground);
+                        worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DeleteCompleted);
+                        worker.RunWorkerAsync(filePath);
+
+                        // Update UI to show deletion started
+                        progressBar1.Visible = true;
+                        button3.Visible = true;
+                        label1.Visible = true;
+                        label3.Visible = true;
+                        label4.Visible = true;
+                        label1.Text = "Deleting Game Zip (1/2)";
+                    }
+
+                    // delete folder(s)...
+                }
+            }
+            catch (Exception ex)
+            {
+                DialogResult opies = MessageBox.Show("Unexpected Error Encountered: " + ex.ToString(), "HOW TIS EVEN HAPEN", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error);
+
+                if(opies == DialogResult.Retry)
+                {
+                    clrdel_Click(clrdel,EventArgs.Empty);
+                }
+            }
         }
 
+        private void DeleteFileBackground(object sender, DoWorkEventArgs e)
+        {
+            string filePath = (string)e.Argument;
+
+            try
+            {
+                // Perform the deletion with progress updates
+                DeleteWithProgress(filePath);
+            }
+            catch (Exception ex)
+            {
+                e.Result = ex.Message; // Pass error message to completed event
+            }
+        }
+
+        private void DeleteCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Error != null)
+            {
+                MessageBox.Show("Error deleting file: " + e.Error.Message);
+            }
+            else
+            {
+                MessageBox.Show("File deleted successfully!");
+                // Reset progress bar and status
+                progressBar1.Value = 0;
+                label1.Text = "";
+            }
+        }
+
+        private void DeleteWithProgress(string filePath)
+        {
+            //  Simulate deletion progress (replace with actual deletion logic)
+            for (int i = 0; i <= 100; i++)
+            {
+                Thread.Sleep(10); // Simulate work
+                worker.ReportProgress(i); // Update progress bar on UI thread
+            }
+
+            File.Delete(filePath);
+        }
     }
 }
+
