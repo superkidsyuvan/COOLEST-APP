@@ -242,10 +242,6 @@ namespace COOLEST_APP
 
                 if(boxOfMessage == DialogResult.Retry)
                 {
-                    if (unzipWorker.IsBusy == true)
-                    {
-                        unzipWorker.Chat
-                    }
                     startUnzip();
                 }else if (boxOfMessage == DialogResult.Ignore)
                 {
@@ -557,29 +553,32 @@ namespace COOLEST_APP
 
             // Get the file path to delete
             string filePath = path + @"\Build.zip"; // Implement logic to get file path
+            string folderPath = path + @"\Build\";
 
             try
             {
                 if (dialogResult == DialogResult.Yes)
                 {
+                    progressBar1.Visible = true;
+                    button3.Visible = true;
+                    label1.Visible = true;
+                    label3.Visible = true;
+                    label4.Visible = true;
                     // Check if file exists
                     if (File.Exists(filePath))
                     {
-
-                        // Start deletion in a background thread
-                        worker.DoWork += new DoWorkEventHandler(DeleteFileBackground);
-                        worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DeleteCompleted);
-                        worker.RunWorkerAsync(filePath);
-
                         // Update UI to show deletion started
-                        progressBar1.Visible = true;
-                        button3.Visible = true;
-                        label1.Visible = true;
-                        label3.Visible = true;
-                        label4.Visible = true;
+                        
                         label1.Text = "Deleting Game Zip (1/2)";
-                    }
 
+                        File.Delete(filePath);
+                    }
+                    if(Directory.Exists(folderPath))
+                    {
+                        label1.Text = "Deleting Game Folder (2/2)";
+                        RemoveDirectories(folderPath);
+                    }
+                    
                     // delete folder(s)...
                 }
             }
@@ -594,46 +593,52 @@ namespace COOLEST_APP
             }
         }
 
-        private void DeleteFileBackground(object sender, DoWorkEventArgs e)
+        private void RemoveDirectories(string strpath)
         {
-            string filePath = (string)e.Argument;
+            ThreadPool.QueueUserWorkItem((o) =>
+            {
+                if (Directory.Exists(strpath))
+                {
+                    DirectoryInfo dirInfo = new DirectoryInfo(strpath);
+                    var files = dirInfo.GetFiles();
+                    var dirs = dirInfo.GetDirectories();
+                    //I assume your code is inside a Form, else you need a control to do this invocation;
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        progressBar1.Minimum = 0;
+                        progressBar1.Value = 0;
+                        progressBar1.Maximum = files.Length + dirs.Length;
+                        progressBar1.Step = 1;
+                    }));
 
-            try
-            {
-                // Perform the deletion with progress updates
-                DeleteWithProgress(filePath);
-            }
-            catch (Exception ex)
-            {
-                e.Result = ex.Message; // Pass error message to completed event
-            }
-        }
+                    foreach (FileInfo file in files)
+                    {
+                        file.Delete();
+                        this.BeginInvoke(new Action(() => progressBar1.PerformStep())); //I assume your code is inside a Form, else you need a control to do this invocation;
 
-        private void DeleteCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (e.Error != null)
-            {
-                MessageBox.Show("Error deleting file: " + e.Error.Message);
-            }
-            else
-            {
-                MessageBox.Show("File deleted successfully!");
-                // Reset progress bar and status
-                progressBar1.Value = 0;
-                label1.Text = "";
-            }
-        }
+                    }
 
-        private void DeleteWithProgress(string filePath)
-        {
-            //  Simulate deletion progress (replace with actual deletion logic)
-            for (int i = 0; i <= 100; i++)
-            {
-                Thread.Sleep(10); // Simulate work
-                worker.ReportProgress(i); // Update progress bar on UI thread
-            }
+                    foreach (DirectoryInfo dir in dirs)
+                    {
+                        dir.Delete(true);
+                        this.BeginInvoke(new Action(() => progressBar1.PerformStep())); //I assume your code is inside a Form, else you need a control to do this invocation;
+                    }
+                    dirInfo.Delete();
 
-            File.Delete(filePath);
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        progressBar1.Maximum = 100;
+                        progressBar1.Visible = false;
+                        button3.Visible = false;
+                        label1.Visible = false;
+                        label3.Visible = false;
+                        label4.Visible = false;
+                        clrdel.Visible = false;
+                    }));
+
+                    
+                }
+            }, null);
         }
     }
 }
