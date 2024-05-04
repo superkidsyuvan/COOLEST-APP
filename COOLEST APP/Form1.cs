@@ -281,8 +281,16 @@ namespace COOLEST_APP
 
             string json = JsonSerializer.Serialize(jppn);
             System.IO.File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
+            System.IO.File.WriteAllText(path + @"\Build\version.json", json);
             dwnbtn.Text = "Launch";
             clrdel.Visible = true;
+            progressBar1.Maximum = 100;
+            progressBar1.Visible = false;
+            button3.Visible = false;
+            label1.Visible = false;
+            label3.Visible = false;
+            label4.Visible = false;
+            clrdel.Visible = false;
             // Unzipping completed
             //MessageBox.Show("Unzipping completed!");
         }
