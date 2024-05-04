@@ -34,10 +34,11 @@ namespace COOLEST_APP
         public string EIMlin = "https://";
         public string install = "false";
         private readonly Stopwatch stopwatch = new Stopwatch();
-        private BackgroundWorker unzipWorker;
+        private AbortableBackgroundWorker unzipWorker;
         private long timestamp = 1;
         private long bytesPreDwn = 1;
-        BackgroundWorker worker = new BackgroundWorker();
+        string strpath = "";
+        AbortableBackgroundWorker worker = new AbortableBackgroundWorker();
 
         public Form1()
         {
@@ -221,12 +222,63 @@ namespace COOLEST_APP
         private void InitializeBackgroundWorker()
         {
             unzipWorker = new AbortableBackgroundWorker();
+            unzipWorker.WorkerSupportsCancellation = true;
             unzipWorker.WorkerReportsProgress = true;
             unzipWorker.DoWork += UnzipWorker_DoWork;
             unzipWorker.ProgressChanged += UnzipWorker_ProgressChanged;
             unzipWorker.RunWorkerCompleted += UnzipWorker_RunWorkerCompleted;
+            worker.DoWork += worker_DoWork;
         }
 
+        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            ThreadPool.QueueUserWorkItem((o) =>
+            {
+                if (Directory.Exists(strpath))
+                {
+                    DirectoryInfo dirInfo = new DirectoryInfo(strpath);
+                    var files = dirInfo.GetFiles();
+                    var dirs = dirInfo.GetDirectories();
+                    //I assume your code is inside a Form, else you need a control to do this invocation;
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        progressBar1.Minimum = 0;
+                        progressBar1.Value = 0;
+                        progressBar1.Maximum = files.Length + dirs.Length;
+                        progressBar1.Step = 1;
+                    }));
+
+                    foreach (FileInfo file in files)
+                    {
+                        file.Delete();
+                        this.BeginInvoke(new Action(() => progressBar1.PerformStep())); //I assume your code is inside a Form, else you need a control to do this invocation;
+
+                    }
+
+                    foreach (DirectoryInfo dir in dirs)
+                    {
+                        dir.Delete(true);
+                        this.BeginInvoke(new Action(() => progressBar1.PerformStep())); //I assume your code is inside a Form, else you need a control to do this invocation;
+                    }
+                    dirInfo.Delete();
+
+                    this.BeginInvoke(new Action(() =>
+                    {
+                        progressBar1.Maximum = 100;
+                        progressBar1.Visible = false;
+                        button3.Visible = false;
+                        label1.Visible = false;
+                        label3.Visible = false;
+                        label4.Visible = false;
+                        clrdel.Visible = false;
+                        install = "false";
+                        SaveJson();
+                    }));
+
+
+                }
+            }, null);
+        }
 
         private void UnzipWorker_DoWork(object sender, DoWorkEventArgs e)
         {
@@ -258,9 +310,8 @@ namespace COOLEST_APP
             label1.Text = "Unzipping Game Resources " + e.ProgressPercentage + "%";
         }
 
-        private void UnzipWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void SaveJson()
         {
-            install = "true";
             if (!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\")))
             {
                 Directory.CreateDirectory(System.IO.Path.GetTempPath() + @"EMI\");
@@ -319,45 +370,7 @@ namespace COOLEST_APP
             }
             else
             {
-                if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
-                {
-                    File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
-                    var jppn = new Jspn
-                    {
-                        Path = path,
-                        GameUp = gameup,
-                        GameLin = gamelin,
-                        EIMUp = EIMup,
-                        EIMLin = EIMlin,
-                        Install = install
-                    };
-                    Console.WriteLine("'" + gameup + "'");
-                    string json = JsonSerializer.Serialize(jppn);
-                    File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
-                }
-                else
-                {
-                    Console.WriteLine(System.IO.Path.GetTempPath() + @"EMI\path.json");
-                    if (!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\"))) {
-                        Directory.CreateDirectory(System.IO.Path.GetTempPath() + @"EMI\");
-                    }
-                    if (Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\path.json"))
-                    {
-                        File.Delete(System.IO.Path.GetTempPath() + @"EMI\path.json");
-                    }
-                    var jppn = new Jspn
-                    {
-                        Path = path,
-                        GameUp = gameup,
-                        GameLin = gamelin,
-                        EIMUp = EIMup,
-                        EIMLin = EIMlin,
-                        Install = install
-                    };
-
-                    string json = JsonSerializer.Serialize(jppn);
-                    File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
-                }
+                SaveJson();
             }
         }
 
@@ -584,7 +597,20 @@ namespace COOLEST_APP
                     if(Directory.Exists(folderPath))
                     {
                         label1.Text = "Deleting Game Folder (2/2)";
-                        RemoveDirectories(folderPath);
+                        strpath = folderPath;
+                        worker.RunWorkerAsync();
+                    }
+                    else
+                    {
+                        progressBar1.Maximum = 100;
+                        progressBar1.Visible = false;
+                        button3.Visible = false;
+                        label1.Visible = false;
+                        label3.Visible = false;
+                        label4.Visible = false;
+                        clrdel.Visible = false;
+                        install = "false";
+                        SaveJson();
                     }
                     
                     // delete folder(s)...
