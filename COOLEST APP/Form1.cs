@@ -272,7 +272,7 @@ namespace COOLEST_APP
                         label4.Visible = false;
                         clrdel.Visible = false;
                         install = "false";
-                        SaveJson();
+                        SaveJson(System.IO.Path.GetTempPath() + @"EMI\path.json");
                     }));
 
 
@@ -310,7 +310,7 @@ namespace COOLEST_APP
             label1.Text = "Unzipping Game Resources " + e.ProgressPercentage + "%";
         }
 
-        private void SaveJson()
+        private void SaveJson(string dirPath)
         {
             if (!(Directory.Exists(System.IO.Path.GetTempPath() + @"EMI\")))
             {
@@ -331,8 +331,14 @@ namespace COOLEST_APP
             };
 
             string json = JsonSerializer.Serialize(jppn);
-            System.IO.File.WriteAllText(System.IO.Path.GetTempPath() + @"EMI\path.json", json);
-            System.IO.File.WriteAllText(path + @"\Build\version.json", json);
+            System.IO.File.WriteAllText(dirPath, json);
+        }
+
+        private void UnzipWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            install = "true";
+            SaveJson(System.IO.Path.GetTempPath() + @"EMI\path.json");
+            SaveJson(path + @"\Build\version.json");
             dwnbtn.Text = "Launch";
             clrdel.Visible = true;
             progressBar1.Maximum = 100;
@@ -370,7 +376,31 @@ namespace COOLEST_APP
             }
             else
             {
-                SaveJson();
+                if(Directory.Exists(path + @"\Build\"))
+                {
+                    if(!(File.Exists(path + @"\Build\version.json")))
+                    {
+                        SaveJson(path + @"\Build\version.json");
+                    }
+                    Jspn dwnjson = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\dwn_path.json");
+                    Jspn vjson = JsonFileReader.Read<Jspn>(path + @"\Build\version.json");
+                    gameup = vjson.GameUp;
+                    if (Int32.Parse(vjson.GameUp) < Int32.Parse(dwnjson.GameUp))
+                    {
+                        dwnbtn.Text = "Update Game";
+                    }
+                    else
+                    {
+                        dwnbtn.Text = "Launch";
+                        install = "true";
+                    }
+                }
+                else
+                {
+                    dwnbtn.Text = "Install";
+                    install = "false";
+                }
+                SaveJson(System.IO.Path.GetTempPath() + @"EMI\path.json");
             }
         }
 
@@ -428,7 +458,14 @@ namespace COOLEST_APP
             }
             if (dwnbtn.Text == "Launch")
             {
-                System.Diagnostics.Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+                try
+                {
+                    System.Diagnostics.Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+                }
+                catch (Exception ex)
+                {
+
+                }
             }
         }
 
@@ -610,9 +647,9 @@ namespace COOLEST_APP
                         label4.Visible = false;
                         clrdel.Visible = false;
                         install = "false";
-                        SaveJson();
+                        SaveJson(System.IO.Path.GetTempPath() + @"EMI\path.json");
                     }
-                    
+
                     // delete folder(s)...
                 }
             }

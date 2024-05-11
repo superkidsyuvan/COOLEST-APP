@@ -50,6 +50,7 @@ namespace COOLEST_APP
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button1 = new System.Windows.Forms.Button();
             this.textBox = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
@@ -227,6 +228,7 @@ namespace COOLEST_APP
             this.Controls.Add(this.dwnbtn);
             this.Controls.Add(this.textBox);
             this.Controls.Add(this.button1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "Form1";
             this.Shown += new System.EventHandler(this.Form1_Shown);
