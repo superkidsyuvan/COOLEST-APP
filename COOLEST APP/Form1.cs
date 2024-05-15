@@ -385,6 +385,8 @@ namespace COOLEST_APP
                     Jspn dwnjson = JsonFileReader.Read<Jspn>(System.IO.Path.GetTempPath() + @"EMI\dwn_path.json");
                     Jspn vjson = JsonFileReader.Read<Jspn>(path + @"\Build\version.json");
                     gameup = vjson.GameUp;
+                    install = "true";
+                    clrdel.Visible=true;
                     if (Int32.Parse(vjson.GameUp) < Int32.Parse(dwnjson.GameUp))
                     {
                         dwnbtn.Text = "Update Game";
@@ -392,11 +394,11 @@ namespace COOLEST_APP
                     else
                     {
                         dwnbtn.Text = "Launch";
-                        install = "true";
                     }
                 }
                 else
                 {
+                    clrdel.Visible = false;
                     dwnbtn.Text = "Install";
                     install = "false";
                 }
@@ -460,11 +462,17 @@ namespace COOLEST_APP
             {
                 try
                 {
-                    System.Diagnostics.Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+                    //Process em = Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+                    /*Process ExternalProcess = new Process();
+                    ExternalProcess.StartInfo.FileName = path + @"\Build\em_steam-win32-x64\em_steam.exe";
+                    ExternalProcess.Start();
+                    ExternalProcess.WaitForExit();
+                    Console.WriteLine(path + @"\Build\em_steam-win32-x64\em_steam.exe");*/
+                    Process.Start(new ProcessStartInfo(path + @"\Build\em_steam-win32-x64\em_steam.exe"));
                 }
                 catch (Exception ex)
                 {
-
+                    MessageBox.Show("Unexpected Error Encountered: " + ex.ToString(), "HOW TIS EVEN HAPEN", MessageBoxButtons.RetryCancel, MessageBoxIcon.Error);
                 }
             }
         }
