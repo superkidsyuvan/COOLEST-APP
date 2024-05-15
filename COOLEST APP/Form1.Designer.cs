@@ -59,6 +59,7 @@ namespace COOLEST_APP
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.menubtn = new System.Windows.Forms.Button();
             this.panel = new System.Windows.Forms.Panel();
+            this.chkres = new System.Windows.Forms.Button();
             this.clrdel = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -150,6 +151,7 @@ namespace COOLEST_APP
             // panel
             // 
             this.panel.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.panel.Controls.Add(this.chkres);
             this.panel.Controls.Add(this.clrdel);
             this.panel.Controls.Add(this.button2);
             this.panel.Controls.Add(this.label2);
@@ -159,6 +161,17 @@ namespace COOLEST_APP
             this.panel.TabIndex = 7;
             this.panel.Visible = false;
             this.panel.MouseLeave += new System.EventHandler(this.panel_Exit);
+            // 
+            // chkres
+            // 
+            this.chkres.Location = new System.Drawing.Point(3, 74);
+            this.chkres.Name = "chkres";
+            this.chkres.Size = new System.Drawing.Size(175, 23);
+            this.chkres.TabIndex = 5;
+            this.chkres.Text = "Check Integrity Of Resources";
+            this.chkres.UseVisualStyleBackColor = true;
+            this.chkres.Visible = false;
+            this.chkres.Click += new System.EventHandler(this.chkres_Click);
             // 
             // clrdel
             // 
@@ -231,6 +244,7 @@ namespace COOLEST_APP
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.panel.ResumeLayout(false);
             this.panel.PerformLayout();
@@ -254,6 +268,7 @@ namespace COOLEST_APP
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button clrdel;
+        private System.Windows.Forms.Button chkres;
     }
 }
 

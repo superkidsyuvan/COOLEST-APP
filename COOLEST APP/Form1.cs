@@ -462,13 +462,17 @@ namespace COOLEST_APP
             {
                 try
                 {
-                    //Process em = Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+                    Process em = Process.Start(path + @"\Build\em_steam-win32-x64\em_steam.exe");
+                    this.WindowState = FormWindowState.Minimized;
+                    em.WaitForExit();
+                    this.WindowState = FormWindowState.Normal;
                     /*Process ExternalProcess = new Process();
                     ExternalProcess.StartInfo.FileName = path + @"\Build\em_steam-win32-x64\em_steam.exe";
                     ExternalProcess.Start();
                     ExternalProcess.WaitForExit();
                     Console.WriteLine(path + @"\Build\em_steam-win32-x64\em_steam.exe");*/
-                    Process.Start(new ProcessStartInfo(path + @"\Build\em_steam-win32-x64\em_steam.exe"));
+                    //Process.Start(new ProcessStartInfo(path + @"\Build\em_steam-win32-x64\em_steam.exe"));
+                    //Console.WriteLine(em.HasExited);
                 }
                 catch (Exception ex)
                 {
@@ -718,6 +722,16 @@ namespace COOLEST_APP
                     
                 }
             }, null);
+        }
+
+        private void chkres_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
