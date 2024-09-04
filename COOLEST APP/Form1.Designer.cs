@@ -170,7 +170,6 @@ namespace COOLEST_APP
             this.chkres.TabIndex = 5;
             this.chkres.Text = "Check Integrity Of Resources";
             this.chkres.UseVisualStyleBackColor = true;
-            this.chkres.Visible = false;
             this.chkres.Click += new System.EventHandler(this.chkres_Click);
             // 
             // clrdel

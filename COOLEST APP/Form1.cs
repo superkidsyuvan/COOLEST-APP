@@ -1,23 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Text;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Net;
-using System.Reflection.Emit;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Policy;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 
@@ -35,6 +24,7 @@ namespace COOLEST_APP
         public string install = "false";
         private readonly Stopwatch stopwatch = new Stopwatch();
         private AbortableBackgroundWorker unzipWorker;
+        private AbortableBackgroundWorker pngWorker;
         private long timestamp = 1;
         private long bytesPreDwn = 1;
         string strpath = "";
@@ -216,18 +206,25 @@ namespace COOLEST_APP
                 dwnbtn.Visible = true;
                 menubtn.Visible = true;
             }
-            Console.WriteLine("asds" + (System.IO.Path.GetTempPath() + @"EMI\path.json"));
+            Console.WriteLine("p" + (System.IO.Path.GetTempPath() + @"EMI\path.json"));
         }
 
         private void InitializeBackgroundWorker()
         {
             unzipWorker = new AbortableBackgroundWorker();
+            pngWorker = new AbortableBackgroundWorker();
             unzipWorker.WorkerSupportsCancellation = true;
+            pngWorker.WorkerSupportsCancellation = true;
             unzipWorker.WorkerReportsProgress = true;
+            pngWorker.WorkerReportsProgress = true;
             unzipWorker.DoWork += UnzipWorker_DoWork;
+            pngWorker.DoWork += pngWorker_DoWork;
             unzipWorker.ProgressChanged += UnzipWorker_ProgressChanged;
+            pngWorker.ProgressChanged += pngWorker_ProgressChanged;
             unzipWorker.RunWorkerCompleted += UnzipWorker_RunWorkerCompleted;
+            pngWorker.RunWorkerCompleted += pngWorker_RunWorkerCompleted;
             worker.DoWork += worker_DoWork;
+
         }
 
         private void worker_DoWork(object sender, DoWorkEventArgs e)
@@ -303,11 +300,36 @@ namespace COOLEST_APP
             }
         }
 
+        private void pngWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            foreach (var file in
+                    Directory.GetFiles(path + @"\Build\em_steam-win32-x64\resources\app\src_files\images\bin", "*.png", SearchOption.AllDirectories))
+            {
+                /* if life was simple progressBar1.Maximum = file.Length;
+                progressBar1.Value = progressBar1.Value + 1;*/
+                Console.WriteLine(file);
+                if (!IsValidPNG(file))
+                {
+                    //deal with the error
+                    MessageBox.Show("there is corruption (you must uninstall and reinstall yourself)", "problem", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    pngWorker.CancelAsync();
+                    break;
+                }
+            }
+        }
+
         private void UnzipWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             // Update the ProgressBar value based on progress
             progressBar1.Value = e.ProgressPercentage;
             label1.Text = "Unzipping Game Resources " + e.ProgressPercentage + "%";
+        }
+
+        private void pngWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            // Update the ProgressBar value based on progress
+            progressBar1.Value = e.ProgressPercentage;
+            label1.Text = "Checking Integrity of Resources... (" + e.ProgressPercentage + "%)";
         }
 
         private void SaveJson(string dirPath)
@@ -350,6 +372,19 @@ namespace COOLEST_APP
             clrdel.Visible = false;
             // Unzipping completed
             //MessageBox.Show("Unzipping completed!");
+        }
+
+        private void pngWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            DialogResult dialogResult = MessageBox.Show("Finished Task (no corruption!!!!)", "Completed Task 00fEI2u", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            clrdel.Visible = true;
+            progressBar1.Maximum = 100;
+            progressBar1.Visible = false;
+            button3.Visible = false;
+            label1.Visible = false;
+            label3.Visible = false;
+            label4.Visible = false;
+            clrdel.Visible = true;
         }
 
 
@@ -726,13 +761,52 @@ namespace COOLEST_APP
 
         private void chkres_Click(object sender, EventArgs e)
         {
+            //ui
 
+            progressBar1.Value = 0;
+            clrdel.Visible = false;
+            progressBar1.Maximum = 100;
+            progressBar1.Visible = true;
+            button3.Visible = true;
+            label1.Visible = true;
+            clrdel.Visible = true;
+            label1.Text = "Checking Integrity of Resources...";
+            if (label3.Visible)
+            {
+                label3.Visible = false;
+            }
+            if (label4.Visible)
+            {
+                label4.Visible = false;
+            }
+
+            System.Threading.Thread.Sleep(1000);
+
+            pngWorker.RunWorkerAsync();
+
+            // check pngs (pretend that everything is png)
+            {
+                //start pngWorker
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
+
+        private static bool IsValidPNG(string filename)
+        {
+            try
+            {
+                using (var bmp = new Bitmap(filename)) { }
+                return true;
+            } catch(Exception e)
+            {
+                return false;
+            }
+        }
+
     }
 }
 
